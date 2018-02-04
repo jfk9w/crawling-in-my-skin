@@ -9,7 +9,7 @@ import java.util.regex.Pattern;
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
 
-public final class HistogramContext {
+final class HistogramContext {
 
   final int maxDepth;
   private final String domain;

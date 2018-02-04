@@ -41,7 +41,7 @@ public class HistogramTask extends RecursiveTask<Map<String, Integer>> {
     try {
       Document doc = Jsoup.connect(url).get();
       Map<String, Integer> histogram =
-          Arrays.stream(doc.body().text().split("\\W+"))
+          Arrays.stream(doc.body().text().split("[\\s+\\.,\\/#!$%\\^&\\*;:{}=—_`~()|]"))
               .filter(s -> !s.isEmpty())
               .map(String::toLowerCase)
               .collect(new HistogramCollector<>());
