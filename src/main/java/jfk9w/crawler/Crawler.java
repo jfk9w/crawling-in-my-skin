@@ -27,6 +27,7 @@ public final class Crawler {
     List<HistogramItem> histogram = pool
         .submit(HistogramTask.initial(url, maxDepth)).join()
         .entrySet().stream()
+        .parallel()
         .map(e -> new HistogramItem(e.getKey(), e.getValue()))
         .collect(Collectors.toList());
 

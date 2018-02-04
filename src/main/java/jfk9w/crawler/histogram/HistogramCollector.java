@@ -27,8 +27,9 @@ public final class HistogramCollector<T>
   @Override
   public BinaryOperator<Map<T, Integer>> combiner() {
     return (a, b) -> {
-      b.forEach((k, v) -> a.merge(k, v, (x, y) -> x + y));
-      return a;
+      Map<T, Integer> r = new HashMap<>(a);
+      b.forEach((k, v) -> r.merge(k, v, (x, y) -> x + y));
+      return r;
     };
   }
 
@@ -39,6 +40,6 @@ public final class HistogramCollector<T>
 
   @Override
   public Set<Characteristics> characteristics() {
-    return ImmutableSet.of(Characteristics.UNORDERED, Characteristics.IDENTITY_FINISH);
+    return ImmutableSet.of(Characteristics.UNORDERED, Characteristics.IDENTITY_FINISH, Characteristics.CONCURRENT);
   }
 }

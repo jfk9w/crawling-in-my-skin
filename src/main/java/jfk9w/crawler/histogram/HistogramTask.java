@@ -1,15 +1,17 @@
 package jfk9w.crawler.histogram;
 
-import com.google.common.collect.ImmutableMap;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ForkJoinTask;
 import java.util.concurrent.RecursiveTask;
+import java.util.stream.Collectors;
 
 public class HistogramTask extends RecursiveTask<Map<String, Integer>> {
 
@@ -50,12 +52,16 @@ public class HistogramTask extends RecursiveTask<Map<String, Integer>> {
         return histogram;
       }
 
-      Map<String, Integer> sub = doc.select("a[href]").stream()
-          .parallel()
-          .map(e -> e.attr("abs:href"))
-          .map(url -> new HistogramTask(ctx, url, depth + 1).fork().join())
+      Collection<ForkJoinTask<Map<String, Integer>>> forks =
+          invokeAll(doc.select("a[href]").stream()
+              .map(e -> e.attr("abs:href"))
+              .map(url -> new HistogramTask(ctx, url, depth + 1).fork())
+              .collect(Collectors.toList()));
+
+      Map<String, Integer> sub = forks.stream()
+          .map(ForkJoinTask::join)
           .reduce(HistogramTask::merge)
-          .orElseGet(ImmutableMap::of);
+          .orElseGet(HashMap::new);
 
       return merge(histogram, sub);
     } catch (Exception e) {
@@ -65,7 +71,8 @@ public class HistogramTask extends RecursiveTask<Map<String, Integer>> {
   }
 
   private static Map<String, Integer> merge(Map<String, Integer> a, Map<String, Integer> b) {
-    b.forEach((k, v) -> a.merge(k, v, (x, y) -> x + y));
-    return a;
+    Map<String, Integer> r = new HashMap<>(a);
+    b.forEach((k, v) -> r.merge(k, v, (x, y) -> x + y));
+    return r;
   }
 }
