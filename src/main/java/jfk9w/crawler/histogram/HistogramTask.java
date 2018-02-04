@@ -19,16 +19,21 @@ public class HistogramTask extends RecursiveTask<Map<String, Integer>> {
   private final String url;
   private final int depth;
 
-  public HistogramTask(HistogramContext ctx, String url, int depth) {
+  private HistogramTask(HistogramContext ctx, String url, int depth) {
     this.ctx = ctx;
     this.url = url;
     this.depth = depth;
   }
 
+  public static HistogramTask initial(String url, int maxDepth) {
+    HistogramContext ctx = HistogramContext.create(url, maxDepth);
+    return new HistogramTask(ctx, url, 0);
+  }
+
   @Override
   protected Map<String, Integer> compute() {
-    if (ctx.isParsed(url)) {
-      return ImmutableMap.of();
+    if (!ctx.shouldParse(url)) {
+      return new HashMap<>();
     }
 
     logger.debug("Processing {}", url);
@@ -49,19 +54,18 @@ public class HistogramTask extends RecursiveTask<Map<String, Integer>> {
           .parallel()
           .map(e -> e.attr("abs:href"))
           .map(url -> new HistogramTask(ctx, url, depth + 1).fork().join())
-          .reduce(this::merge)
+          .reduce(HistogramTask::merge)
           .orElseGet(ImmutableMap::of);
 
       return merge(histogram, sub);
     } catch (Exception e) {
       logger.error("Failed to load {}", url, e);
-      return ImmutableMap.of();
+      return new HashMap<>();
     }
   }
 
-  private Map<String, Integer> merge(Map<String, Integer> a, Map<String, Integer> b) {
-    Map<String, Integer> r = new HashMap<>(a);
-    b.forEach((k, v) -> r.merge(k, v, (x, y) -> x + y));
-    return r;
+  private static Map<String, Integer> merge(Map<String, Integer> a, Map<String, Integer> b) {
+    b.forEach((k, v) -> a.merge(k, v, (x, y) -> x + y));
+    return a;
   }
 }

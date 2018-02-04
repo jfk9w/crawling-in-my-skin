@@ -24,7 +24,7 @@ public final class Crawler {
 
     ForkJoinPool pool = new ForkJoinPool(32);
     List<HistogramItem> histogram = pool
-        .submit(new HistogramTask(new HistogramContext(maxDepth), url, 0)).join()
+        .submit(HistogramTask.initial(url, maxDepth)).join()
         .entrySet().stream()
         .map(e -> new HistogramItem(e.getKey(), e.getValue()))
         .collect(Collectors.toList());
