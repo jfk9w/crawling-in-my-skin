@@ -6,32 +6,42 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
+import static java.util.Objects.requireNonNull;
 
 final class Context {
 
-  final int maxDepth;
+  private static final Pattern DOMAIN_REGEXP =
+      Pattern.compile("(?:https?:\\/\\/)?(?:[^@\\/\\n]+@)?(?:www\\.)?([^:\\/\\n]+)");
+
   private final String domain;
   private final ConcurrentMap<String, Boolean> done = new ConcurrentHashMap<>();
 
-  static Context create(String url, int maxDepth) {
-    checkArgument(maxDepth >= 0);
-    return new Context(maxDepth, extract(url).orElseThrow(IllegalArgumentException::new));
+  static Context create(String url) {
+    Context ctx = new Context(extract(url).orElseThrow(IllegalArgumentException::new));
+    ctx.done.put(strip(url), true);
+    return ctx;
   }
 
-  private Context(int maxDepth, String domain) {
-    this.maxDepth = maxDepth;
+  private Context(String domain) {
     this.domain = domain;
   }
 
   boolean proceed(String url) {
+    requireNonNull(url);
+    url = strip(url);
     return extract(url).map(d -> d.equals(domain)).orElse(false)
         && done.put(url, true) == null;
   }
 
-  private static final Pattern DOMAIN_REGEXP =
-      Pattern.compile("(?:https?:\\/\\/)?(?:[^@\\/\\n]+@)?(?:www\\.)?([^:\\/\\n]+)");
+  private static String strip(String url) {
+    url = url.trim();
+    if (url.endsWith("/")) {
+      return strip(url.substring(0, url.length() - 1));
+    }
+
+    return url;
+  }
 
   private static Optional<String> extract(String url) {
     checkNotNull(url);

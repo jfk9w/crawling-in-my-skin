@@ -20,10 +20,10 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
   private final Document document;
   private final Executor io;
 
-  public static HistogramTask initial(String url, int maxDepth, Executor io)
+  public static HistogramTask initial(String url, int depth, Executor io)
       throws InterruptedException, ExecutionException {
-    Context ctx = Context.create(url, maxDepth);
-    return new HistogramTask(ctx, 1, new JsoupService(io).submit(url).get(), io);
+    Context ctx = Context.create(url);
+    return new HistogramTask(ctx, depth, new JsoupService(io).submit(url).get(), io);
   }
 
   private HistogramTask(Context ctx, int depth, Document document, Executor io) {
@@ -36,7 +36,7 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
   @Override
   protected Histogram compute() {
     JsoupService jsoup = new JsoupService(io);
-    if (depth < ctx.maxDepth) {
+    if (depth > 0) {
       Elements elements = document.select("a[href]");
       for (Element element : elements) {
         String url = element.attr("abs:href");
@@ -46,20 +46,25 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
       }
     }
 
-    Histogram hg = Arrays
-        .stream(document.body().text().split("[\\s+-.,/#!$%^&*;:{}\\[\\]=—_`~()|'\"?°′″·–•→<>]"))
-        .filter(s -> !s.isEmpty())
-        .map(String::toLowerCase)
-        .collect(new HistogramCollector());
+    final Histogram histogram;
+    if (document.body() != null && document.body().text() != null) {
+      String text = document.body().text();
+      histogram = Arrays.stream(text.split("[\\s+-.,/#!$%^&*;:{}\\[\\]=—_`~()|'\"?°′″·–•→<>†]"))
+          .filter(s -> !s.isEmpty())
+          .map(String::toLowerCase)
+          .collect(new HistogramCollector());
+    } else {
+      histogram = Histogram.EMPTY;
+    }
 
     List<ForkJoinTask<Histogram>> forks = new LinkedList<>();
     for (Document ref : jsoup) {
       if (ref != null) {
-        forks.add(new HistogramTask(ctx, depth + 1, ref, io).fork());
+        forks.add(new HistogramTask(ctx, depth - 1, ref, io).fork());
       }
     }
 
-    return hg.merge(
+    return histogram.merge(
         forks.stream()
             .map(ForkJoinTask::join)
             .reduce(Histogram::merge)
