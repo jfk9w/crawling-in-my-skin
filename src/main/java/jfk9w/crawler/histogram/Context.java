@@ -18,7 +18,9 @@ final class Context {
   private final ConcurrentMap<String, Boolean> done = new ConcurrentHashMap<>();
 
   static Context create(String url) {
-    Context ctx = new Context(extract(url).orElseThrow(IllegalArgumentException::new));
+    Context ctx = new Context(extract(url)
+        .orElseThrow(() -> new IllegalArgumentException("Invalid URL: " + url)));
+
     ctx.done.put(strip(url), true);
     return ctx;
   }

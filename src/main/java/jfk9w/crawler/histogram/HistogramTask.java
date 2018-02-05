@@ -22,8 +22,9 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
 
   public static HistogramTask initial(String url, int depth, Executor io)
       throws InterruptedException, ExecutionException {
+    Document doc = new JsoupService(io).submit(url).get();
     Context ctx = Context.create(url);
-    return new HistogramTask(ctx, depth, new JsoupService(io).submit(url).get(), io);
+    return new HistogramTask(ctx, depth, doc, io);
   }
 
   private HistogramTask(Context ctx, int depth, Document document, Executor io) {
