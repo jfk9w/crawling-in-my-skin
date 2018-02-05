@@ -25,7 +25,7 @@ final class Context {
     this.domain = domain;
   }
 
-  boolean mustContinue(String url) {
+  boolean proceed(String url) {
     return extract(url).map(d -> d.equals(domain)).orElse(false)
         && done.put(url, true) == null;
   }

@@ -4,13 +4,16 @@ import com.google.common.base.Joiner;
 import com.google.common.collect.Ordering;
 
 import java.util.*;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
 public final class Histogram {
 
-  public static final Histogram EMPTY = new Histogram(Collections.emptyMap());
+  static final Histogram EMPTY = new Histogram(Collections.emptyMap());
+
+  private static final Pattern PROBABLY_WORD_PATTERN = Pattern.compile("^.*\\D+.*$");
 
   private final Map<String, Integer> words;
 
@@ -18,11 +21,13 @@ public final class Histogram {
     this.words = Collections.unmodifiableMap(words);
   }
 
-  public View top(int n) {
+  public View topWords(int n) {
     checkArgument(n >= 0);
     return new View(
         Ordering.natural()
             .greatestOf(words.entrySet().stream()
+                .parallel()
+                .filter(e -> PROBABLY_WORD_PATTERN.matcher(e.getKey()).matches())
                 .map(e -> new Item(e.getKey(), e.getValue()))
                 .collect(Collectors.toList()), n)
     );
@@ -30,11 +35,9 @@ public final class Histogram {
 
   public static final class View {
     private final List<Item> rows;
-
     private View(List<Item> rows) {
       this.rows = Collections.unmodifiableList(rows);
     }
-
     @Override
     public String toString() {
       return Joiner.on("\n").join(rows);
@@ -59,16 +62,11 @@ public final class Histogram {
   }
 
   Histogram merge(Histogram that) {
+    if (this.words.isEmpty()) { return that; }
+    if (that.words.isEmpty()) { return this; }
     Map<String, Integer> result = new HashMap<>(words);
     that.words.forEach((k, v) -> result.merge(k, v, (x, y) -> x + y));
     return new Histogram(result);
-  }
-
-  private static final Joiner.MapJoiner joiner = Joiner.on("\n").withKeyValueSeparator(": ");
-
-  @Override
-  public String toString() {
-    return joiner.join(words);
   }
 
   @Override
