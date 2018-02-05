@@ -39,7 +39,7 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
       Elements elements = document.select("a[href]");
       for (Element element : elements) {
         String url = element.attr("abs:href");
-        if (ctx.proceed(url)) {
+        if (url != null && ctx.proceed(url)) {
           jsoup.submit(element.attr("abs:href"));
         }
       }

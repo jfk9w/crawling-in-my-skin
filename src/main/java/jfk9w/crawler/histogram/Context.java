@@ -8,7 +8,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import static com.google.common.base.Preconditions.checkNotNull;
-import static java.util.Objects.requireNonNull;
 
 final class Context {
 
@@ -36,10 +35,8 @@ final class Context {
   }
 
   boolean proceed(String url) {
-    requireNonNull(url);
-    url = strip(url);
     return extract(url).map(d -> d.equals(domain)).orElse(false)
-        && done.put(url, true) == null;
+        && done.put(strip(url), true) == null;
   }
 
   private static String strip(String url) {
