@@ -3,6 +3,7 @@ package jfk9w.crawler.histogram;
 import java.util.Optional;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.Executor;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -14,19 +15,24 @@ final class Context {
   private static final Pattern DOMAIN_REGEXP =
       Pattern.compile("(?:https?:\\/\\/)?(?:[^@\\/\\n]+@)?(?:www\\.)?([^:\\/\\n]+)");
 
+  final Executor io;
+
   private final String domain;
   private final ConcurrentMap<String, Boolean> done = new ConcurrentHashMap<>();
 
-  static Context create(String url) {
-    Context ctx = new Context(extract(url)
-        .orElseThrow(() -> new IllegalArgumentException("Invalid URL: " + url)));
+  static Context create(String url, Executor io) {
+    String domain = extract(url)
+        .orElseThrow(() ->
+            new IllegalArgumentException("Invalid URL: " + url));
 
+    Context ctx = new Context(domain, io);
     ctx.done.put(strip(url), true);
     return ctx;
   }
 
-  private Context(String domain) {
+  private Context(String domain, Executor io) {
     this.domain = domain;
+    this.io = io;
   }
 
   boolean proceed(String url) {
