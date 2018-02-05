@@ -1,6 +1,7 @@
 package jfk9w.crawler.histogram;
 
 import com.google.common.collect.ImmutableSet;
+import jfk9w.crawler.Histogram;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,35 +12,35 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-public final class HistogramCollector<T>
-    implements Collector<T, Map<T, Integer>, Map<T, Integer>> {
+public final class HistogramCollector
+    implements Collector<String, Map<String, Integer>, Histogram> {
 
   @Override
-  public Supplier<Map<T, Integer>> supplier() {
+  public Supplier<Map<String, Integer>> supplier() {
     return HashMap::new;
   }
 
   @Override
-  public BiConsumer<Map<T, Integer>, T> accumulator() {
+  public BiConsumer<Map<String, Integer>, String> accumulator() {
     return (acc, k) -> acc.merge(k, 1, (a, b) -> a + b);
   }
 
   @Override
-  public BinaryOperator<Map<T, Integer>> combiner() {
+  public BinaryOperator<Map<String, Integer>> combiner() {
     return (a, b) -> {
-      Map<T, Integer> r = new HashMap<>(a);
+      Map<String, Integer> r = new HashMap<>(a);
       b.forEach((k, v) -> r.merge(k, v, (x, y) -> x + y));
       return r;
     };
   }
 
   @Override
-  public Function<Map<T, Integer>, Map<T, Integer>> finisher() {
-    return Function.identity();
+  public Function<Map<String, Integer>, Histogram> finisher() {
+    return Histogram::new;
   }
 
   @Override
   public Set<Characteristics> characteristics() {
-    return ImmutableSet.of(Characteristics.UNORDERED, Characteristics.IDENTITY_FINISH, Characteristics.CONCURRENT);
+    return ImmutableSet.of(Characteristics.UNORDERED, Characteristics.CONCURRENT);
   }
 }
