@@ -37,6 +37,6 @@ final class HistogramCollector
 
   @Override
   public Set<Characteristics> characteristics() {
-    return ImmutableSet.of(Characteristics.UNORDERED, Characteristics.CONCURRENT);
+    return ImmutableSet.of(Characteristics.UNORDERED);
   }
 }
