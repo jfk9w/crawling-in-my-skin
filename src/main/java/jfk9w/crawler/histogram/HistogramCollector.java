@@ -1,6 +1,7 @@
 package jfk9w.crawler.histogram;
 
 import com.google.common.collect.ImmutableSet;
+import jfk9w.crawler.util.Utils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -11,7 +12,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collector;
 
-public final class HistogramCollector
+final class HistogramCollector
     implements Collector<String, Map<String, Integer>, Histogram> {
 
   @Override
@@ -26,11 +27,7 @@ public final class HistogramCollector
 
   @Override
   public BinaryOperator<Map<String, Integer>> combiner() {
-    return (a, b) -> {
-      Map<String, Integer> r = new HashMap<>(a);
-      b.forEach((k, v) -> r.merge(k, v, (x, y) -> x + y));
-      return r;
-    };
+    return Utils::merge;
   }
 
   @Override

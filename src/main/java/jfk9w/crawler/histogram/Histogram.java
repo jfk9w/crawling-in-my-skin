@@ -2,6 +2,7 @@ package jfk9w.crawler.histogram;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Ordering;
+import jfk9w.crawler.util.Utils;
 
 import java.util.*;
 import java.util.regex.Pattern;
@@ -62,11 +63,7 @@ public final class Histogram {
   }
 
   Histogram merge(Histogram that) {
-    if (this.words.isEmpty()) { return that; }
-    if (that.words.isEmpty()) { return this; }
-    Map<String, Integer> result = new HashMap<>(words);
-    that.words.forEach((k, v) -> result.merge(k, v, (x, y) -> x + y));
-    return new Histogram(result);
+    return new Histogram(Utils.merge(this.words, that.words));
   }
 
   @Override
