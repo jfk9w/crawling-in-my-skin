@@ -1,7 +1,6 @@
 package jfk9w.crawler.histogram;
 
 import com.google.common.collect.ImmutableSet;
-import jfk9w.crawler.Histogram;
 
 import java.util.HashMap;
 import java.util.Map;

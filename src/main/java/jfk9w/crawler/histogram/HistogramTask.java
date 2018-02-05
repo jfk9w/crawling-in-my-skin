@@ -1,6 +1,5 @@
 package jfk9w.crawler.histogram;
 
-import jfk9w.crawler.Histogram;
 import jfk9w.crawler.executor.JsoupService;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -53,8 +52,9 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
     }
 
     Histogram hg = Arrays
-        .stream(document.body().text().split("[\\s+\\.,\\/#!$%\\^&\\*;:{}=—_`~()|]"))
+        .stream(document.body().text().split("[\\s+-.,/#!$%^&*;:{}=—_`~()|'\"?]"))
         .filter(s -> !s.isEmpty())
+        .map(String::toLowerCase)
         .collect(new HistogramCollector());
 
     List<ForkJoinTask<Histogram>> forks = new LinkedList<>();

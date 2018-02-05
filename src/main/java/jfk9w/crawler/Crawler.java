@@ -1,5 +1,6 @@
 package jfk9w.crawler;
 
+import jfk9w.crawler.histogram.Histogram;
 import jfk9w.crawler.histogram.HistogramTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,7 +24,7 @@ public final class Crawler {
     long start = System.currentTimeMillis();
     Histogram histogram = pure.submit(HistogramTask.initial(url, maxDepth, io)).join();
 
-    logger.info("{}\ntime: {} ms.", histogram, System.currentTimeMillis() - start);
+    logger.info("{}\0n=======\ntime: {} ms.", histogram, System.currentTimeMillis() - start);
   }
 
 }

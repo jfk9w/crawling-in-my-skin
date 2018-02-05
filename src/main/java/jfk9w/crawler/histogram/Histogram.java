@@ -1,4 +1,4 @@
-package jfk9w.crawler;
+package jfk9w.crawler.histogram;
 
 import com.google.common.base.Joiner;
 
@@ -13,11 +13,11 @@ public final class Histogram {
 
   private final Map<String, Integer> words;
 
-  public Histogram(Map<String, Integer> words) {
+  Histogram(Map<String, Integer> words) {
     this.words = Collections.unmodifiableMap(words);
   }
 
-  public Histogram merge(Histogram that) {
+  Histogram merge(Histogram that) {
     Map<String, Integer> result = new HashMap<>(words);
     that.words.forEach((k, v) -> result.merge(k, v, (x, y) -> x + y));
     return new Histogram(result);
