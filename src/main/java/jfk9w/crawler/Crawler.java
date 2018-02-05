@@ -24,7 +24,7 @@ public final class Crawler {
     long start = System.currentTimeMillis();
     Histogram histogram = pure.submit(HistogramTask.initial(url, maxDepth, io)).join();
 
-    logger.info("{}\0n=======\ntime: {} ms.", histogram, System.currentTimeMillis() - start);
+    logger.info("=======\ntime elapsed: {} ms.\n{}", System.currentTimeMillis() - start, histogram.top(100));
   }
 
 }

@@ -52,7 +52,7 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
     }
 
     Histogram hg = Arrays
-        .stream(document.body().text().split("[\\s+-.,/#!$%^&*;:{}=—_`~()|'\"?]"))
+        .stream(document.body().text().split("[\\s+-.,/#!$%^&*;:{}=—_`~()|'\"?°′″·–]"))
         .filter(s -> !s.isEmpty())
         .map(String::toLowerCase)
         .collect(new HistogramCollector());
