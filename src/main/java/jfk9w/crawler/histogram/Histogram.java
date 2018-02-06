@@ -9,6 +9,7 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 public final class Histogram {
 
@@ -36,29 +37,56 @@ public final class Histogram {
 
   public static final class View {
     private final List<Item> rows;
-    private View(List<Item> rows) {
+    View(List<Item> rows) {
       this.rows = Collections.unmodifiableList(rows);
     }
     @Override
     public String toString() {
       return Joiner.on("\n").join(rows);
     }
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      View view = (View) o;
+      return Objects.equals(rows, view.rows);
+    }
+    @Override
+    public int hashCode() {
+      return Objects.hash(rows);
+    }
   }
 
-  private final static class Item implements Comparable<Item> {
+  final static class Item implements Comparable<Item> {
     private final String word;
     private final int frequency;
-    private Item(String word, int frequency) {
-      this.word = word;
+    Item(String word, int frequency) {
+      this.word = checkNotNull(word);
       this.frequency = frequency;
     }
     @Override
     public int compareTo(Item o) {
-      return Integer.compare(frequency, o.frequency);
+      int r = Integer.compare(frequency, o.frequency);
+      if (r != 0) {
+        return r;
+      }
+      return o.word.compareTo(word);
     }
     @Override
     public String toString() {
       return Joiner.on(": ").join(word, frequency);
+    }
+    @Override
+    public boolean equals(Object o) {
+      if (this == o) return true;
+      if (o == null || getClass() != o.getClass()) return false;
+      Item item = (Item) o;
+      return frequency == item.frequency &&
+          Objects.equals(word, item.word);
+    }
+    @Override
+    public int hashCode() {
+      return Objects.hash(word, frequency);
     }
   }
 
