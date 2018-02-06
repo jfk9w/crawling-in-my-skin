@@ -3,11 +3,11 @@ package jfk9w.crawler.executor;
 import org.jsoup.HttpStatusException;
 import org.jsoup.Jsoup;
 import org.jsoup.UnsupportedMimeTypeException;
-import org.jsoup.nodes.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Iterator;
+import java.util.Optional;
 import java.util.concurrent.*;
 
 import static java.util.Objects.requireNonNull;
@@ -27,21 +27,21 @@ public final class JsoupServiceImpl implements JsoupService {
   public Future<Document> submit(String url) {
     requireNonNull(url);
     jobs++;
-    return executor.submit(Jsoup.connect(url)::get);
+    return executor.submit(() -> new JsoupDocument(Jsoup.connect(url).get()));
   }
 
   @Override
-  public Iterator<Document> iterator() {
-    return new Iterator<Document>() {
+  public Iterator<Optional<Document>> iterator() {
+    return new Iterator<Optional<Document>>() {
       private long idx = 0;
       @Override
       public boolean hasNext() {
         return idx < jobs;
       }
       @Override
-      public Document next() {
+      public Optional<Document> next() {
         try {
-          return executor.take().get();
+          return Optional.of(executor.take().get());
         } catch (ExecutionException e) {
           Throwable cause = e.getCause();
           if (cause != null) {
@@ -60,10 +60,10 @@ public final class JsoupServiceImpl implements JsoupService {
             logger.error("Unknown error", e);
           }
 
-          return null;
+          return Optional.empty();
         } catch (Exception e) {
           logger.error("Unknown error", e);
-          return null;
+          return Optional.empty();
         } finally {
           idx++;
         }

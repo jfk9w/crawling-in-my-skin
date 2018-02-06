@@ -1,6 +1,7 @@
 package jfk9w.crawler.histogram;
 
 import com.google.common.base.Joiner;
+import com.google.common.base.MoreObjects;
 import com.google.common.collect.Ordering;
 import jfk9w.crawler.util.Utils;
 
@@ -92,6 +93,13 @@ public final class Histogram {
 
   Histogram merge(Histogram that) {
     return new Histogram(Utils.merge(this.words, that.words));
+  }
+
+  @Override
+  public String toString() {
+    return MoreObjects.toStringHelper(this)
+        .add("words", words)
+        .toString();
   }
 
   @Override

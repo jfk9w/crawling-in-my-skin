@@ -9,7 +9,7 @@ import static org.junit.Assert.assertEquals;
 public class HistogramTest {
 
   @Test
-  public void topWords() throws Exception {
+  public void topWords() {
     Histogram histogram = new Histogram(of(
         "aaa", 1,
         "ccc", 2,
