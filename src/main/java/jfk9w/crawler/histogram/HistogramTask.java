@@ -3,10 +3,7 @@ package jfk9w.crawler.histogram;
 import jfk9w.crawler.executor.Document;
 import jfk9w.crawler.executor.JsoupService;
 
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinTask;
@@ -47,13 +44,16 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
           .forEach(jsoup::submit);
     }
 
-    Histogram histogram = document.text()
-        .map(t ->
-            Arrays.stream(t.split("[\\s+-.,/#!$%^&*;:{}\\[\\]=—_`~()|'\"?°′″·–•→<>†]"))
-                .filter(s -> !s.isEmpty())
-                .map(String::toLowerCase)
-                .collect(new HistogramCollector()))
-        .orElse(Histogram.EMPTY);
+    Map<String, Integer> hg = new HashMap<>();
+    Optional<String> text = document.text();
+    if (text.isPresent()) {
+      String[] words = text.get().split("[\\s+-.,/#!$%^&*;:{}\\[\\]=—_`~()|'\"?°′″·–•→<>†]");
+      for (String word : words) {
+        if (word != null && !word.isEmpty()) {
+          hg.merge(word.toLowerCase(), 1, (x, y) -> x + y);
+        }
+      }
+    }
 
     List<ForkJoinTask<Histogram>> forks = new LinkedList<>();
     for (Optional<Document> ref : jsoup) {
@@ -61,10 +61,10 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
       ref.map(r -> forks.add(new HistogramTask(ctx, depth - 1, r).fork()));
     }
 
-    return histogram.merge(
-        forks.stream()
-            .map(ForkJoinTask::join)
-            .reduce(Histogram::merge)
-            .orElse(Histogram.EMPTY));
+    forks.stream()
+        .map(ForkJoinTask::join)
+        .forEach(h -> h.dump(hg));
+
+    return new Histogram(hg);
   }
 }

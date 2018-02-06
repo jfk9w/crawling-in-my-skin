@@ -91,8 +91,9 @@ public final class Histogram {
     }
   }
 
-  Histogram merge(Histogram that) {
-    return new Histogram(Utils.merge(this.words, that.words));
+  // Requires mutable target.
+  void dump(Map<String, Integer> target) {
+    words.forEach((k, v) -> target.merge(k, v, (x, y) -> x + y));
   }
 
   @Override
