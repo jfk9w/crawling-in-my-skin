@@ -1,6 +1,5 @@
 package jfk9w.crawler;
 
-import jfk9w.crawler.executor.JsoupServiceImpl;
 import jfk9w.crawler.histogram.Histogram;
 import jfk9w.crawler.histogram.HistogramTask;
 import jfk9w.crawler.util.Timer;
