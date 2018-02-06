@@ -1,9 +1,11 @@
 package jfk9w.crawler;
 
-import jfk9w.crawler.executor.JsoupService;
+import jfk9w.crawler.executor.JsoupServiceImpl;
 import jfk9w.crawler.histogram.Histogram;
 import jfk9w.crawler.histogram.HistogramTask;
 import jfk9w.crawler.util.Timer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -13,6 +15,8 @@ public final class App {
 
   private static final int CPU_COUNT = Runtime.getRuntime().availableProcessors();
 
+  private static final Logger logger = LoggerFactory.getLogger(App.class);
+
   public static void main(String[] args) throws Exception {
     Arguments arguments = parse(args);
     ExecutorService io = Executors.newFixedThreadPool(4 * CPU_COUNT);
@@ -21,9 +25,9 @@ public final class App {
     try {
       HistogramTask task = HistogramTask.initial(arguments.url, arguments.depth, io);
       Histogram.View histogram = pure.submit(task).join().topWords(100);
-      System.out.printf("---\n%s\n", histogram.toString());
+      logger.info("Result:\n{}", histogram.toString());
     } finally {
-      System.out.printf("---\nTime elapsed: %d ms.\nTime spent in IO: %d ms.\n", timer.stop(), JsoupService.time());
+      logger.info("Time elapsed: {} ms.", timer.stop());
       pure.shutdown();
       io.shutdown();
     }

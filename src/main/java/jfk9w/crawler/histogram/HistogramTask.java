@@ -21,8 +21,8 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
 
   public static HistogramTask initial(String url, int depth, Executor io)
       throws InterruptedException, ExecutionException {
-    Document doc = new JsoupService(io).submit(url).get();
-    Context ctx = Context.create(url, io);
+    Context ctx = DefaultContext.create(url, io);
+    Document doc = ctx.io().submit(url).get();
     return new HistogramTask(ctx, depth, doc);
   }
 
@@ -34,12 +34,12 @@ public final class HistogramTask extends RecursiveTask<Histogram> {
 
   @Override
   protected Histogram compute() {
-    JsoupService jsoup = new JsoupService(ctx.io);
+    JsoupService jsoup = ctx.io();
     if (depth > 0) {
       Elements elements = document.select("a[href]");
       for (Element element : elements) {
         String url = element.attr("abs:href");
-        if (url != null && ctx.proceed(url)) {
+        if (url != null && ctx.check(url)) {
           jsoup.submit(element.attr("abs:href"));
         }
       }
